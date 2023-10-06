@@ -116,12 +116,6 @@ namespace Archipelago.Gifting.Net.Service
             return SendGift(item, traits, playerName, playerTeam, canGift, out giftId);
         }
 
-        public async Task<bool> SendGiftAsync(GiftItem item, GiftTrait[] traits, string playerName, int playerTeam)
-        {
-            var canGift = await CanGiftToPlayerAsync(playerName, playerTeam, traits.Select(x => x.Trait));
-            return SendGift(item, traits, playerName, playerTeam, canGift, out _);
-        }
-
         private bool SendGift(GiftItem item, GiftTrait[] traits, string playerName, int playerTeam, bool canGift, out string giftId)
         {
             if (!canGift)
@@ -192,24 +186,10 @@ namespace Archipelago.Gifting.Net.Service
             return gifts;
         }
 
-        public async Task<Dictionary<string, Gift>> GetAllGiftsAndEmptyGiftboxAsync()
-        {
-            var gifts = await CheckGiftBoxAsync();
-            RemoveGiftsFromGiftBox(gifts.Keys);
-            return gifts;
-        }
-
         public Dictionary<string, Gift> CheckGiftBox()
         {
             var giftboxKey = _keyProvider.GetGiftBoxDataStorageKey(_playerProvider.CurrentPlayerTeam, _playerProvider.CurrentPlayerSlot);
             var gifts = GetGiftboxContent(giftboxKey);
-            return gifts;
-        }
-
-        public async Task<Dictionary<string, Gift>> CheckGiftBoxAsync()
-        {
-            var giftboxKey = _keyProvider.GetGiftBoxDataStorageKey(_playerProvider.CurrentPlayerTeam, _playerProvider.CurrentPlayerSlot);
-            var gifts = await GetGiftboxContentAsync(giftboxKey);
             return gifts;
         }
 
@@ -240,14 +220,6 @@ namespace Archipelago.Gifting.Net.Service
             return gifts;
         }
 
-        private async Task<Dictionary<string, Gift>> GetGiftboxContentAsync(string giftboxKey)
-        {
-            CreateGiftboxIfNeeded(giftboxKey);
-            var existingGiftBox = _session.DataStorage[Scope.Global, giftboxKey];
-            var gifts = await existingGiftBox.GetAsync();
-            return _currentConverter.ReadFromDataStorage(gifts);
-        }
-
         public bool CanGiftToPlayer(string playerName)
         {
             return CanGiftToPlayer(playerName, _playerProvider.CurrentPlayerTeam);
@@ -272,16 +244,6 @@ namespace Archipelago.Gifting.Net.Service
             return CanGiftToPlayer(player.Slot, playerTeam, giftTraits);
         }
 
-        public async Task<bool> CanGiftToPlayerAsync(string playerName, int playerTeam, IEnumerable<string> giftTraits)
-        {
-            if (!_playerProvider.TryGetPlayer(playerName, out var player))
-            {
-                return false;
-            }
-
-            return await CanGiftToPlayerAsync(player.Slot, playerTeam, giftTraits);
-        }
-
         public bool CanGiftToPlayer(int playerSlot)
         {
             return CanGiftToPlayer(playerSlot, _playerProvider.CurrentPlayerTeam);
@@ -301,14 +263,6 @@ namespace Archipelago.Gifting.Net.Service
         {
             var motherboxKey = _keyProvider.GetMotherBoxDataStorageKey(playerTeam);
             var motherBox = _session.DataStorage[Scope.Global, motherboxKey].To<Dictionary<int, GiftBox>>();
-            return CanGiftToPlayer(playerSlot, playerTeam, giftTraits, motherBox);
-        }
-
-        public async Task<bool> CanGiftToPlayerAsync(int playerSlot, int playerTeam, IEnumerable<string> giftTraits)
-        {
-            var motherboxKey = _keyProvider.GetMotherBoxDataStorageKey(playerTeam);
-            var motherBoxToken = await _session.DataStorage[Scope.Global, motherboxKey].GetAsync();
-            var motherBox = motherBoxToken.ToObject<Dictionary<int, GiftBox>>();
             return CanGiftToPlayer(playerSlot, playerTeam, giftTraits, motherBox);
         }
 
