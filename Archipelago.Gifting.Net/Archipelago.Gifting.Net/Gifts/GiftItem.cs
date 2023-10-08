@@ -19,5 +19,12 @@ namespace Archipelago.Gifting.Net.Gifts
             Amount = amount;
             Value = value;
         }
+
+        public GiftItem(string name, int amount, int value)
+        {
+            Name = name;
+            Amount = amount;
+            Value = value;
+        }
     }
 }
