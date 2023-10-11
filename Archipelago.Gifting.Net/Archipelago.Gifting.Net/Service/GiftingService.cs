@@ -215,7 +215,7 @@ namespace Archipelago.Gifting.Net.Service
         private Dictionary<string, Gift> GetGiftboxContent(string giftboxKey)
         {
             CreateGiftboxIfNeeded(giftboxKey);
-            var existingGiftBox = _session.DataStorage[Scope.Global, giftboxKey];
+            JToken existingGiftBox = _session.DataStorage[Scope.Global, giftboxKey];
             var gifts = _currentConverter.ReadFromDataStorage(existingGiftBox);
             return gifts;
         }
