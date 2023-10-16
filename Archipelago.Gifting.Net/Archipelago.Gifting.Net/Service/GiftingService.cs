@@ -66,6 +66,20 @@ namespace Archipelago.Gifting.Net.Service
             EmptyGiftBox();
         }
 
+        public GiftBox GetCurrentGiftboxState()
+        {
+            var team = _playerProvider.CurrentPlayerTeam;
+            var player = _playerProvider.CurrentPlayerSlot;
+            var motherBox = GetMotherbox(team);
+            if (!motherBox.ContainsKey(player))
+            {
+                return null;
+            }
+
+            var giftBox = motherBox[player];
+            return giftBox;
+        }
+
         internal void UpdateGiftBox(GiftBox entry)
         {
             var motherboxKey = _keyProvider.GetMotherBoxDataStorageKey();
@@ -104,7 +118,7 @@ namespace Archipelago.Gifting.Net.Service
             {
                 var player = playerGiftbox.Key;
                 var giftbox = playerGiftbox.Value;
-                var acceptedTraits = GetAcceptedTraitsForPlayer(giftbox, giftTraits);
+                var acceptedTraits = GetAcceptedTraits(team, player, giftbox, giftTraits);
                 if (acceptedTraits.Any())
                 {
                     acceptedTraitsByPlayer.Add(player, acceptedTraits);
@@ -114,14 +128,15 @@ namespace Archipelago.Gifting.Net.Service
             return acceptedTraitsByPlayer;
         }
 
-        private static AcceptedTraits GetAcceptedTraitsForPlayer(GiftBox giftbox, IEnumerable<string> giftTraits)
+        private static AcceptedTraits GetAcceptedTraits(int team, int player, GiftBox giftbox, IEnumerable<string> giftTraits)
         {
             if (giftbox == null || !giftbox.IsOpen)
             {
-                return new AcceptedTraits();
+                return new AcceptedTraits(team, player);
             }
 
-            var acceptedTraits = new AcceptedTraits(giftTraits.Where(x => giftbox.AcceptsAnyGift || giftbox.DesiredTraits.Contains(x)));
+            var traits = giftTraits.Where(x => giftbox.AcceptsAnyGift || giftbox.DesiredTraits.Contains(x));
+            var acceptedTraits = new AcceptedTraits(team, player, traits.ToArray());
             return acceptedTraits;
         }
 
